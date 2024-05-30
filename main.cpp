@@ -7,29 +7,29 @@
 #include <unordered_map>
 #include <set>
 
-using namespace std;
-
 class Attraction {
 public:
-    string name;
-    map<Attraction*, int> neighbors;
-    Attraction(string name) : name(name) {}
+    std::string name;
+    std::map<Attraction*, int> neighbors;
+    Attraction(std::string name) : name(name) {}
 
     void addNeighbor(Attraction* neighbor, int time) {
         neighbors[neighbor] = time;
+        neighbor->neighbors[this] = time; // Assuming undirected graph
     }
 };
-pair<vector<Attraction*>, int> findPathGreedy(Attraction* start, Attraction* end) {
-    vector<Attraction*> path;
-    set<Attraction*> visited;
+
+std::pair<std::vector<Attraction*>, int> findPathGreedy(Attraction* start, Attraction* end) {
+    std::vector<Attraction*> path;
+    std::set<Attraction*> visited;
     Attraction* current = start;
     int totalTime = 0;
 
     while (current != end) {
         path.push_back(current);
         visited.insert(current);
-       
-        int shortestTime = numeric_limits<int>::max();
+
+        int shortestTime = std::numeric_limits<int>::max();
         Attraction* nextAttraction = nullptr;
 
         for (auto& neighbor : current->neighbors) {
@@ -40,7 +40,7 @@ pair<vector<Attraction*>, int> findPathGreedy(Attraction* start, Attraction* end
         }
 
         if (nextAttraction == nullptr) {
-            return {{}, -1}; 
+            return {{}, -1}; // No path found
         }
 
         current = nextAttraction;
@@ -50,14 +50,15 @@ pair<vector<Attraction*>, int> findPathGreedy(Attraction* start, Attraction* end
     path.push_back(end);
     return {path, totalTime};
 }
-   pair<vector<Attraction*>, int> findShortestPathDijkstra(Attraction* start, Attraction* end) {
-    map<Attraction*, int> distances;
-    map<Attraction*, Attraction*> previous;
-    set<Attraction*> visited;
-    priority_queue<pair<int, Attraction*>, vector<pair<int, Attraction*>>, greater<pair<int, Attraction*>>> pq;
+
+std::pair<std::vector<Attraction*>, int> findShortestPathDijkstra(Attraction* start, Attraction* end) {
+    std::map<Attraction*, int> distances;
+    std::map<Attraction*, Attraction*> previous;
+    std::set<Attraction*> visited;
+    std::priority_queue<std::pair<int, Attraction*>, std::vector<std::pair<int, Attraction*>>, std::greater<std::pair<int, Attraction*>>> pq;
 
     for (auto& neighbor : start->neighbors) {
-        distances[neighbor.first] = numeric_limits<int>::max();
+        distances[neighbor.first] = std::numeric_limits<int>::max();
     }
     distances[start] = 0;
     pq.push({0, start});
@@ -79,26 +80,30 @@ pair<vector<Attraction*>, int> findPathGreedy(Attraction* start, Attraction* end
         }
     }
 
-    vector<Attraction*> path;
+    std::vector<Attraction*> path;
+    if (distances.find(end) == distances.end() || distances[end] == std::numeric_limits<int>::max()) {
+        return {{}, -1}; // No path found
+    }
+
     int totalTime = distances[end];
     for (Attraction* at = end; at != nullptr; at = previous[at]) {
         path.push_back(at);
     }
-    reverse(path.begin(), path.end());
+    std::reverse(path.begin(), path.end());
 
     return {path, totalTime};
 }
 
 int heuristic(Attraction* a, Attraction* b) {
-    return 1; 
+    return 1; // Replace with a meaningful heuristic if available
 }
 
-pair<vector<Attraction*>, int> findPathAStar(Attraction* start, Attraction* end) {
-    map<Attraction*, int> gScore;
-    map<Attraction*, int> fScore;
-    map<Attraction*, Attraction*> previous;
-    set<Attraction*> openSet;
-    priority_queue<pair<int, Attraction*>, vector<pair<int, Attraction*>>, greater<pair<int, Attraction*>>> pq;
+std::pair<std::vector<Attraction*>, int> findPathAStar(Attraction* start, Attraction* end) {
+    std::map<Attraction*, int> gScore;
+    std::map<Attraction*, int> fScore;
+    std::map<Attraction*, Attraction*> previous;
+    std::set<Attraction*> openSet;
+    std::priority_queue<std::pair<int, Attraction*>, std::vector<std::pair<int, Attraction*>>, std::greater<std::pair<int, Attraction*>>> pq;
 
     gScore[start] = 0;
     fScore[start] = heuristic(start, end);
@@ -110,12 +115,12 @@ pair<vector<Attraction*>, int> findPathAStar(Attraction* start, Attraction* end)
         pq.pop();
 
         if (current == end) {
-            vector<Attraction*> path;
+            std::vector<Attraction*> path;
             int totalTime = gScore[end];
             for (Attraction* at = end; at != nullptr; at = previous[at]) {
                 path.push_back(at);
             }
-            reverse(path.begin(), path.end());
+            std::reverse(path.begin(), path.end());
             return {path, totalTime};
         }
 
@@ -135,12 +140,13 @@ pair<vector<Attraction*>, int> findPathAStar(Attraction* start, Attraction* end)
         }
     }
 
-    return {{}, -1};
+    return {{}, -1}; // No path found
 }
-vector<pair<Attraction*, Attraction*>> findMST(vector<Attraction*> attractions) {
-    vector<pair<Attraction*, Attraction*>> mst;
-    set<Attraction*> inMST;
-    priority_queue<pair<int, pair<Attraction*, Attraction*>>, vector<pair<int, pair<Attraction*, Attraction*>>>, greater<pair<int, pair<Attraction*, Attraction*>>>> pq;
+
+std::vector<std::pair<Attraction*, Attraction*>> findMST(std::vector<Attraction*> attractions) {
+    std::vector<std::pair<Attraction*, Attraction*>> mst;
+    std::set<Attraction*> inMST;
+    std::priority_queue<std::pair<int, std::pair<Attraction*, Attraction*>>, std::vector<std::pair<int, std::pair<Attraction*, Attraction*>>>, std::greater<std::pair<int, std::pair<Attraction*, Attraction*>>>> pq;
 
     Attraction* start = attractions[0];
     inMST.insert(start);
@@ -171,6 +177,14 @@ vector<pair<Attraction*, Attraction*>> findMST(vector<Attraction*> attractions) 
 
     return mst;
 }
+
+void printPath(const std::vector<Attraction*>& path) {
+    for (Attraction* attraction : path) {
+        std::cout << attraction->name << " ";
+    }
+    std::cout << std::endl;
+}
+
 int main() {
     Attraction* A = new Attraction("A");
     Attraction* B = new Attraction("B");
@@ -185,20 +199,37 @@ int main() {
     C->addNeighbor(D, 1);
     D->addNeighbor(E, 3);
 
-    vector<Attraction*> attractions = {A, B, C, D, E};
+    std::vector<Attraction*> attractions = {A, B, C, D, E};
 
     auto greedyResult = findPathGreedy(A, E);
     auto dijkstraResult = findShortestPathDijkstra(A, E);
     auto aStarResult = findPathAStar(A, E);
     auto mst = findMST(attractions);
 
-    cout << "Greedy Path: ";
+    std::cout << "Greedy Path: ";
     printPath(greedyResult.first);
-    cout << "Total Time: " << greedyResult.second << " minutes" << endl;
+    std::cout << "Total Time: " << greedyResult.second << " minutes" << std::endl;
 
-    cout << "Dijkstra Path: ";
+    std::cout << "Dijkstra Path: ";
     printPath(dijkstraResult.first);
-    cout << "Total Time: " << dijkstraResult.second << " minutes" << endl;
+    std::cout << "Total Time: " << dijkstraResult.second << " minutes" << std::endl;
 
-    cout << "A* Path: ";
+    std::cout << "A* Path: ";
+    printPath(aStarResult.first);
+    std::cout << "Total Time: " << aStarResult.second << " minutes" << std::endl;
+
+    std::cout << "MST: ";
+    for (auto& edge : mst) {
+        std::cout << "(" << edge.first->name << " - " << edge.second->name << ") ";
+    }
+    std::cout << std::endl;
+
+    // Clean up allocated memory
+    delete A;
+    delete B;
+    delete C;
+    delete D;
+    delete E;
+
+    return 0;
 }
